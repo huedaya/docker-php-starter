@@ -1,0 +1,11 @@
+{
+  "name": "elybin/docker-php-starter",
+  "scripts": {
+    "app-init": [
+      "composer install"
+    ]
+  },
+  "require": {
+    "ext-mysqli": "*"
+  }
+}

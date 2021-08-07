@@ -20,7 +20,7 @@ services:
       - local
       - proxy
     depends_on:
-      - db:
+      db:
         condition: service_healthy
   db:
     image: mariadb
