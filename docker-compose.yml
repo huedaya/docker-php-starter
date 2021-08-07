@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/server/Dockerfile
+    container_name: ${APP_CONTAINER_NAME}
+    mem_limit: 200m
+    restart: always
+    volumes:
+      - ./:/var/www/html/
+      - composer_cache:/root/.composer/cache
+      - ./docker/server/apache/sites-enabled:/etc/apache2/sites-enabled
+      - ./docker/server/php/php.ini:/usr/local/etc/php/conf.d/extra-php-config.ini
+    ports:
+      - ${APP_HTTP_PORT}:80
+      - ${APP_HTTPS_PORT}:443
+    networks:
+      - local
+      - proxy
+    depends_on:
+      - db:
+        condition: service_healthy
+  db:
+    image: mariadb
+    container_name: ${DB_HOST}
+    mem_limit: 40m
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Jakarta
+    ports:
+      - ${DB_HOST_PORT}:${DB_CONTAINER_PORT}
+    networks:
+      - local
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/db/mariadb/my.cnf:/etc/mysql/conf.d/my.cnf
+    command: mysqld --default-storage-engine=MyISAM
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=${DB_ROOT_PASSWORD}
+      interval: 5s
+      retries: 5
+
+networks:
+  local:
+  proxy:
+    external: true
+
+volumes:
+  db-data:
+  composer_cache:
